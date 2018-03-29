@@ -2,5 +2,5 @@
 #import kai("sys")
 
 Exit :: fn(code: i32) -> void {
-    sys.Syscall1(sys.Syscall.Exit, code)
+    sys.Syscall1(sys.Syscall.Exit, autocast code)
 }

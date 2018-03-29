@@ -1,6 +1,10 @@
 
 #import kai("sys")
 
+Stdin  :: sys.Stdin
+Stdout :: sys.Stdout
+Stderr :: sys.Stderr
+
 Write :: fn(fd: sys.FileDescriptor, bytes: []u8) -> i64 {
     return autocast sys.Write(fd, autocast bytes.raw, bytes.len)
 }
