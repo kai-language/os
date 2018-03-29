@@ -5,10 +5,11 @@ Write :: fn(fd: sys.FileDescriptor, bytes: []u8) -> i64 {
     return autocast sys.Write(fd, autocast bytes.raw, bytes.len)
 }
 
-Read :: fn(fd: sys.FileDescriptor, buffer: *[]u8) -> void {
+Read :: fn(fd: sys.FileDescriptor, buffer: *[]u8) -> bool {
     bytesRead := sys.Read(fd, buffer.raw, buffer.cap)
-    if bytesRead < 0 panic()
+    if bytesRead < 0 return true
     buffer.len += cast(u64) bytesRead
+    return false
 }
 
 Seek :: fn(fd: sys.FileDescriptor, offset: i64, whence: sys.FileSeek) -> i64 {
@@ -19,12 +20,11 @@ Open :: fn(path: *u8, flags: sys.FileFlags) -> sys.FileDescriptor {
     return autocast sys.Syscall2(sys.Syscall.Open, autocast path, autocast flags)
 }
 
-Close :: fn(fd: sys.FileDescriptor) -> i32 {
-    return autocast sys.Syscall1(sys.Syscall.Close, autocast fd)
+Close :: fn(fd: sys.FileDescriptor) -> bool {
+    return sys.Syscall1(sys.Syscall.Close, autocast fd) == 0
 }
 
 Mmap :: fn(fd: sys.FileDescriptor, offset: i64, length: u64, prot: sys.Prot, flags: sys.MapFlags) -> []u8, bool {
-
     addr: rawptr = autocast sys.Syscall6(sys.Syscall.Mmap, /*addr:*/ 0, autocast length, autocast prot, autocast flags, autocast fd, autocast offset)
     slice := []u8{}
     slice.raw = addr
@@ -37,8 +37,8 @@ Munmap :: fn(slice: []u8) -> bool {
     return sys.Syscall2(sys.Syscall.Munmap, autocast slice.raw, autocast slice.cap) != 0
 }
 
-Mprotect :: fn(slice: []u8, prot: sys.Prot) -> i32 {
-    return autocast sys.Syscall3(sys.Syscall.Munmap, autocast slice.raw, autocast slice.cap, autocast prot)
+Mprotect :: fn(slice: []u8, prot: sys.Prot) -> bool {
+    return sys.Syscall3(sys.Syscall.Munmap, autocast slice.raw, autocast slice.cap, autocast prot) == 0
 }
 
 #test "Read file fills buffer" {
